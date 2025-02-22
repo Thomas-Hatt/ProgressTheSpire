@@ -56,11 +56,11 @@ public class ProgressTheSpire implements
 
         try {
             Properties defaults = new Properties();
-            defaults.put("AchievementsLocked", "");
             defaults.put("AchievementsUnlocked", "");
 
+            initializeAchievements();
             modConfig = new SpireConfig(modID, "GeneralConfig", defaults);
-
+            modConfig.save();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -71,38 +71,45 @@ public class ProgressTheSpire implements
 
     // Initialize achievements
     public static void initializeAchievements() {
-        achievements.put("rare_cards", new Achievement("rare_cards", "Obtain 20 rare cards", false, 0));
+        achievements.put("first_victory", new Achievement("first_victory", "Win your first run", false, 0, 1));
+        achievements.put("ascension_20_victory", new Achievement("ascension_20_victory", "Win on Ascension 20", false, 0, 1));
+        // Add other achievements here
     }
 
-    public static void SaveAchievemnts() throws IOException{
+    public static void SaveAchievements() throws IOException {
         if (modConfig == null) return;
 
         ArrayList<String> unlocked = new ArrayList<>();
         ArrayList<String> locked = new ArrayList<>();
 
-        for (Achievement achievement : achievements.values()) {
+        for (Map.Entry<String, Achievement> entry : achievements.entrySet()) {
+            Achievement achievement = entry.getValue();
             if (achievement.unlocked) {
                 unlocked.add(achievement.key);
             } else {
                 locked.add(achievement.key + ":" + achievement.progress);
             }
         }
+
+        modConfig.setString("UnlockedAchievements", String.join(",", unlocked));
+        modConfig.setString("LockedAchievements", String.join(",", locked));
+        modConfig.save();
     }
+
 
     public static void LoadAchievements() {
         if (modConfig == null) return;
 
-        ArrayList<String> unlocked = new ArrayList<>();
-        ArrayList<String> locked = new ArrayList<>();
+        String[] unlockedArray = modConfig.getString("UnlockedAchievements").split(",");
+        String[] lockedArray = modConfig.getString("LockedAchievements").split(",");
 
-        for (String key : unlocked) {
+        for (String key : unlockedArray) {
             if (achievements.containsKey(key)) {
-                Achievement achievement = achievements.get(key);
-                achievement.unlocked = true;
+                achievements.get(key).unlocked = true;
             }
         }
 
-        for (String data : locked) {
+        for (String data : lockedArray) {
             String[] parts = data.split(":");
             String key = parts[0];
             int progress = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
@@ -114,32 +121,18 @@ public class ProgressTheSpire implements
         }
     }
 
-//    // Unlocked achievements
-//    public static ArrayList<String> getUnlockedAchievements() {
-//        if (modConfig == null) return new ArrayList<>();
-//        return new ArrayList<>(Arrays.asList(modConfig.getString("AchievementsUnlocked").split(",")));
-//    }
-//
-//    public static void saveUnlockedAchievements(ArrayList<String> input) throws IOException {
-//        if (modConfig == null) return;
-//        modConfig.setString("AchievementsUnlocked", String.join(",", input));
-//        modConfig.save();
-//    }
-//
-//
-//    // Locked achievements
-//    public static ArrayList<String> getLockedAchievements() {
-//        if (modConfig == null) return new ArrayList<>();
-//        return new ArrayList<>(Arrays.asList(modConfig.getString("AchievementsLocked").split(",")));
-//    }
-//
-//
-//    public static void saveLockedAchievements(ArrayList<String> input) throws IOException {
-//        if (modConfig == null) return;
-//        modConfig.setString("AchievementsLocked", String.join(",", input));
-//        modConfig.save();
-//    }
 
+//    // Unlocked achievements
+    public static ArrayList<String> getUnlockedAchievements() {
+      if (modConfig == null) return new ArrayList<>();
+      return new ArrayList<>(Arrays.asList(modConfig.getString("AchievementsUnlocked").split(",")));
+   }
+
+    public static void saveUnlockedAchievements(ArrayList<String> input) throws IOException {
+        if (modConfig == null) return;
+        modConfig.setString("AchievementsUnlocked", String.join(",", input));
+        modConfig.save();
+    }
 
     public ProgressTheSpire() {
         BaseMod.subscribe(this); //This will make BaseMod trigger all the subscribers at their appropriate times.
@@ -152,7 +145,6 @@ public class ProgressTheSpire implements
         Texture badgeTexture = TextureLoader.getTexture(imagePath("badge.png"));
         //Set up the mod information displayed in the in-game mods menu.
         //The information used is taken from your pom.xml file.
-
 
         //If you want to set up a config panel, that will be done here.
         //You can find information about this on the BaseMod wiki page "Mod Config and Panel".

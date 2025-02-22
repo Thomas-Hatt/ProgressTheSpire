@@ -36,19 +36,21 @@ public class Achievement {
         }
     }
 
-    public void unlock() {
+    public boolean unlock() {
         if (!unlocked) {
             unlocked = true;
             progress = target;
             System.out.println("-----------------------");
             System.out.println("Achievement unlocked: " + description);
             System.out.println("-----------------------");
-            // You could add more unlock logic here, like displaying a notification
             try {
                 ProgressTheSpire.SaveAchievements();
             } catch (IOException e) {
                 ProgressTheSpire.logger.error("Failed to save achievements: " + e.getMessage());
             }
+            return true;  // Return true if the achievement was newly unlocked
         }
+        return false;  // Return false if the achievement was already unlocked
     }
+
 }
