@@ -2,6 +2,7 @@ package ProgressTheSpire;
 
 
 import ProgressTheSpire.achievement_classes.Achievement;
+import ProgressTheSpire.ui.MainMenuAchievementsViewButton;
 import basemod.BaseMod;
 import basemod.interfaces.EditKeywordsSubscriber;
 import basemod.interfaces.EditStringsSubscriber;
@@ -10,6 +11,7 @@ import ProgressTheSpire.util.GeneralUtils;
 import java.io.IOException;
 import ProgressTheSpire.util.KeywordInfo;
 import ProgressTheSpire.util.TextureLoader;
+import ProgressTheSpire.patches.MainMenuExpansionReminderPatches;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglFileHandle;
@@ -22,6 +24,7 @@ import com.evacipated.cardcrawl.modthespire.Patcher;
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.google.gson.Gson;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.localization.*;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +47,8 @@ public class ProgressTheSpire implements
 
     public static SpireConfig modConfig = null;
 
+    public static boolean initializedStrings = false;
+
     //This is used to prefix the IDs of various objects like cards and relics,
     //to avoid conflicts between different mods using the same name for things.
     public static String makeID(String id) {
@@ -58,12 +63,66 @@ public class ProgressTheSpire implements
             Properties defaults = new Properties();
             defaults.put("AchievementsUnlocked", "");
 
+            defaults.put("ProgressTheSpireEPSEEN","FALSE");
+
             initializeAchievements();
             modConfig = new SpireConfig(modID, "GeneralConfig", defaults);
             modConfig.save();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean isEPSEEN() {
+
+        if(modConfig == null) {
+            System.out.println("-2-----------------2--");
+            logger.info("modConfig is null, returning true for isEPSEEN");
+            System.out.println("-2-----------------2--");
+            return true;
+        }
+
+        boolean seen = modConfig.getBool("ProgressTheSpireEPSEEN");
+
+        System.out.println("123---------------------");
+        logger.info("isEPSEEN returning: " + seen);
+        System.out.println("123---------------------");
+        return seen;
+    }
+
+
+    public static void saveEPSEEN() {
+        if(modConfig == null) return;
+        try {
+            ProgressTheSpire.modConfig.setBool("ProgressTheSpireEPSEEN", true);
+            modConfig.save();
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void receivePostInitialize() {
+        //This loads the image used as an icon in the in-game mods menu.
+
+        Texture badgeTexture = TextureLoader.getTexture(imagePath("badge.png"));
+        //Set up the mod information displayed in the in-game mods menu.
+        //The information used is taken from your pom.xml file.
+
+        initializedStrings = true;
+        MainMenuAchievementsViewButton.initStrings();
+
+        //If you want to set up a config panel, that will be done here.
+        //You can find information about this on the BaseMod wiki page "Mod Config and Panel".
+        BaseMod.registerModBadge(badgeTexture, info.Name, GeneralUtils.arrToString(info.Authors), info.Description, null);
+        initializeConfig();
+
+    }
+
+    private void initializeConfig() {
+        UIStrings configStrings = CardCrawlGame.languagePack.getUIString(makeID("ConfigMenuText"));
+
+        // Texture badge = TexLoader.getTexture(makeImagePath("ui/badge.png"));
     }
 
     // Achievements hashmap
@@ -122,7 +181,7 @@ public class ProgressTheSpire implements
     }
 
 
-//    // Unlocked achievements
+    // Unlocked achievements
     public static ArrayList<String> getUnlockedAchievements() {
       if (modConfig == null) return new ArrayList<>();
       return new ArrayList<>(Arrays.asList(modConfig.getString("AchievementsUnlocked").split(",")));
@@ -139,20 +198,55 @@ public class ProgressTheSpire implements
         logger.info(modID + " subscribed to BaseMod.");
     }
 
-    @Override
-    public void receivePostInitialize() {
-        //This loads the image used as an icon in the in-game mods menu.
-        Texture badgeTexture = TextureLoader.getTexture(imagePath("badge.png"));
-        //Set up the mod information displayed in the in-game mods menu.
-        //The information used is taken from your pom.xml file.
 
-        //If you want to set up a config panel, that will be done here.
-        //You can find information about this on the BaseMod wiki page "Mod Config and Panel".
-        BaseMod.registerModBadge(badgeTexture, info.Name, GeneralUtils.arrToString(info.Authors), info.Description, null);
+
+    // System.out.println("----------------------");
+
+    /*----------Paths----------*/
+
+    public static String makePath(String resourcePath) {
+        return resourcesFolder + "/" + resourcePath;
+    }
+
+    public static String makeImagePath(String resourcePath) {
+        return resourcesFolder + "/images/" + resourcePath;
+    }
+
+    public static String makeRelicPath(String resourcePath) {
+        return resourcesFolder + "/images/relics/" + resourcePath;
+    }
+
+    public static String makePowerPath(String resourcePath) {
+        return resourcesFolder + "/images/powers/" + resourcePath;
+    }
+
+    public static String makeCardPath(String resourcePath) {
+        return resourcesFolder + "/images/cards/" + resourcePath;
+    }
+
+    public static String makeShaderPath(String resourcePath) {
+        return resourcesFolder + "/shaders/" + resourcePath;
+    }
+
+    public static String makeOrbPath(String resourcePath) {
+        return resourcesFolder + "/images/orbs/" + resourcePath;
     }
 
 
     /*----------Localization----------*/
+
+    public static String imagePath(String file) {
+        return resourcesFolder + "/images/" + file;
+    }
+    public static String characterPath(String file) {
+        return resourcesFolder + "/images/character/" + file;
+    }
+    public static String powerPath(String file) {
+        return resourcesFolder + "/images/powers/" + file;
+    }
+    public static String relicPath(String file) {
+        return resourcesFolder + "/images/relics/" + file;
+    }
 
     //This is used to load the appropriate localization files based on language.
     private static String getLangString()
@@ -199,8 +293,8 @@ public class ProgressTheSpire implements
                 localizationPath(lang, "PowerStrings.json"));
         BaseMod.loadCustomStringsFile(RelicStrings.class,
                 localizationPath(lang, "RelicStrings.json"));
-        BaseMod.loadCustomStringsFile(UIStrings.class,
-                localizationPath(lang, "UIStrings.json"));
+        BaseMod.loadCustomStringsFile(UIStrings.class, "ProgressTheSpire/localization/eng/UIStrings.json");
+        logger.info("Loaded ProgressTheSpire's UIStrings.json for language: " + lang);
     }
 
     @Override
@@ -244,18 +338,7 @@ public class ProgressTheSpire implements
         return resourcesFolder + "/localization/" + lang + "/" + file;
     }
 
-    public static String imagePath(String file) {
-        return resourcesFolder + "/images/" + file;
-    }
-    public static String characterPath(String file) {
-        return resourcesFolder + "/images/character/" + file;
-    }
-    public static String powerPath(String file) {
-        return resourcesFolder + "/images/powers/" + file;
-    }
-    public static String relicPath(String file) {
-        return resourcesFolder + "/images/relics/" + file;
-    }
+
 
     /**
      * Checks the expected resources path based on the package name.

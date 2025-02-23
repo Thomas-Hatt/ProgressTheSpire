@@ -1,0 +1,4 @@
+package ProgressTheSpire.vfx;
+
+public class GlowParticle {
+}

@@ -1,16 +1,37 @@
 {
-  "${modID}:Example": {
+  "${ModID}:ConfigMenuText": {
     "TEXT": [
-      "This is",
-      "an array of Strings."
-    ],
-    "EXTRA_TEXT": [
-      "This is another",
-      "array of Strings."
+    ]
+  },
+  "${ModID}:PackSummaryDisplay": {
+    "TEXT": [
+      "Pack Summary",
+      "Offense: {0}",
+      "Defense: {0}",
+      "Support: {0}",
+      "Frontload: {0}",
+      "Scaling: {0}",
+      "Tags: {0}",
+      ", "
     ],
     "TEXT_DICT": {
-      "This": "Contains pairs of Strings, used to get values based on keys.",
-      "This is a key": "This is a value."
+      "None": "None",
+      "Strength": "Strength",
+      "Exhaust": "Exhaust",
+      "Orbs": "Orbs",
+      "Stances": "Stances",
+      "Discard": "Discard",
+      "Debuffs": "Debuffs",
+      "Attacks": "Attacks",
+      "Tokens": "Tokens",
+      "Powers": "Powers"
     }
+  },
+  "ProgressTheSpire:MainMenuAchievementsButton": {
+    "TEXT": [
+      "Enable Additional Packs!",
+      "You're missing some packs, #gclick #gthis #gto #genable #gthem. More variety, but longer initial load time. NL #yRequires #yRestart!",
+      "Restart Required!"
+    ]
   }
 }
